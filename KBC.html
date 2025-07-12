@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>₹ KAUN BANEGA CROREPATI! ₹</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('kbc_background.jpg'); 
+      background-size: cover;
+      background-position: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 30px;
+      background-color: rgba(255, 255, 255, 0.8); 
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      opacity: 0; 
+      animation: fadeIn 8s forwards; 
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0; 
+      }
+      to {
+        opacity: 1; 
+      }
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .question {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #questionText {
+      font-size: 30px;
+    }
+
+    #options {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #options button {
+      margin: 5px 0;
+      padding: 20px;
+      width: 50%;
+      border: none;
+      background-color: #4caf50;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #options button:hover {
+      background-color: #45a049;
+    }
+
+    #lifelines {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    #lifelines button {
+      margin: 0 10px;
+      padding: 20px 40px;
+      border: none;
+      background-color: #008CBA;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #lifelines button:hover {
+      background-color: #005f73;
+    }
+
+    #result {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 18px;
+    }
+
+    #moneyAmount {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+<audio controls loop>
+<source src="bgmusic.mp3" type="audio/mp3"></audio>
+
+
+<div class="container">
+  <h1>₹ KAUN BANEGA CROREPATI! ₹</h1>
+
+  <div id="moneyAmount">
+    <p>Total Money: ₹<span id="moneyValue">0</span></p>
+  </div>
+
+  <div class="question" id="question">
+    <h2>Question:</h2>
+    <p id="questionText"></p>
+  </div>
+
+  <div id="options">
+    <button onclick="checkAnswer(0)" id="option0"></button>
+    <button onclick="checkAnswer(1)" id="option1"></button>
+    <button onclick="checkAnswer(2)" id="option2"></button>
+    <button onclick="checkAnswer(3)" id="option3"></button>
+  </div>
+
+  <div id="lifelines">
+    <button onclick="use5050()" id="5050">50-50</button>
+    <button onclick="phoneAFriend()" id="phoneAFriend">Phone a Friend</button>
+    <button onclick="audiencePoll()" id="audiencePoll">Audience Poll</button>
+    <button onclick="flipQuestion()" id="flipQuestion">Flip the Question</button>
+  </div>
+
+  <div id="result"></div>
+
+  <div id="finalAmount" style="text-align: center; font-size: 24px; margin-top: 20px; display: none;"></div>
+</div>
+
+<script>
+  const questions = [
+    {
+      question: "What is the capital of France?",
+      options: ["Paris", "London", "Berlin", "Rome"],
+      answer: 0
+    },
+    {
+      question: "Which planet is known as the Red Planet?",
+      options: ["Mars", "Venus", "Jupiter", "Saturn"],
+      answer: 0
+    },
+    {
+      question: "Who painted the Mona Lisa?",
+      options: ["Leonardo da Vinci", "Pablo Picasso", "Vincent van Gogh", "Michelangelo"],
+      answer: 0
+    },
+    {
+      question: "Which country is known as the Land of the Rising Sun?",
+      options: ["China", "India", "Japan", "South Korea"],
+      answer: 2
+    },
+    {
+      question: "Who wrote the famous play 'Hamlet'?",
+      options: ["William Shakespeare", "Charles Dickens", "Leo Tolstoy", "Jane Austen"],
+      answer: 0
+    },
+    {
+      question: "What is the largest ocean in the world?",
+      options: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
+      answer: 3
+    },
+    {
+      question: "What is the currency of Japan?",
+      options: ["Yen", "Dollar", "Euro", "Pound"],
+      answer: 0
+    },
+    {
+      question: "Who is the author of 'To Kill a Mockingbird'?",
+      options: ["Harper Lee", "J.K. Rowling", "George Orwell", "Ernest Hemingway"],
+      answer: 0
+    },
+    {
+      question: "Which gas is most abundant in the Earth's atmosphere?",
+      options: ["Oxygen", "Nitrogen", "Carbon dioxide", "Hydrogen"],
+      answer: 1
+    },
+    {
+      question: "Which is the largest mammal in the world?",
+      options: ["Elephant", "Blue Whale", "Giraffe", "Hippopotamus"],
+      answer: 1
+    },
+  ];
+
+  const winningAmount = 100000;
+  const wrongAnswerAmount = -50000;
+
+  let currentQuestionIndex = 0;
+  let totalMoney = 0;
+  let lifelinesUsed = {
+    "5050": false,
+    "phoneAFriend": false,
+    "audiencePoll": false,
+    "flipQuestion": false
+  };
+
+  function displayQuestion() {
+    const currentQuestion = questions[currentQuestionIndex];
+    document.getElementById('questionText').textContent = currentQuestion.question;
+    for (let i = 0; i < currentQuestion.options.length; i++) {
+      document.getElementById('option' + i).textContent = currentQuestion.options[i];
+    }
+  }
+
+  function checkAnswer(optionIndex) {
+    const currentQuestion = questions[currentQuestionIndex];
+    if (optionIndex === currentQuestion.answer) {
+      document.getElementById('result').textContent = "Correct!";
+      totalMoney += winningAmount;
+    } else {
+      document.getElementById('result').textContent = "Incorrect!";
+      totalMoney += wrongAnswerAmount;
+    }
+    document.getElementById('moneyValue').textContent = totalMoney;
+    
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      displayQuestion();
+    } else {
+      document.getElementById('question').style.display = 'none';
+      document.getElementById('options').style.display = 'none';
+      document.getElementById('lifelines').style.display = 'none';
+      document.getElementById('result').textContent = "Congratulations! You have completed the game.";
+      document.getElementById('finalAmount').textContent = "Final Amount: ₹" + totalMoney;
+      document.getElementById('finalAmount').style.display = 'block';
+    }
+  }
+
+  function use5050() {
+    if (!lifelinesUsed["5050"]) {
+      const currentQuestion = questions[currentQuestionIndex];
+      const options = document.getElementById('options').getElementsByTagName('button');
+      let removedCount = 0;
+      for (let i = 0; i < options.length; i++) {
+        if (i !== currentQuestion.answer) {
+          options[i].textContent = '';
+          removedCount++;
+        }
+        if (removedCount === 2) break;
+      }
+      document.getElementById('lifelines').removeChild(document.getElementById('5050'));
+      lifelinesUsed["5050"] = true;
+    } else {
+      alert("You have already used 50-50 lifeline for this question.");
+    }
+  }
+
+  function phoneAFriend() {
+    if (!lifelinesUsed["phoneAFriend"]) {
+      const currentQuestion = questions[currentQuestionIndex];
+      const randomOption = Math.floor(Math.random() * currentQuestion.options.length);
+      alert("Your friend suggests: " + currentQuestion.options[randomOption]);
+      document.getElementById('lifelines').removeChild(document.getElementById('phoneAFriend'));
+      lifelinesUsed["phoneAFriend"] = true;
+    } else {
+      alert("You have already used Phone a Friend lifeline for this question.");
+    }
+  }
+
+  function audiencePoll() {
+    if (!lifelinesUsed["audiencePoll"]) {
+      const currentQuestion = questions[currentQuestionIndex];
+      let distribution = [];
+      for (let i = 0; i < currentQuestion.options.length; i++) {
+        distribution.push(Math.floor(Math.random() * 40) + 60);
+      }
+      alert("Audience Poll Results:\nOption 1: " + distribution[0] + "%\nOption 2: " + distribution[1] + "%\nOption 3: " + distribution[2] + "%\nOption 4: " + distribution[3] + "%");
+      document.getElementById('lifelines').removeChild(document.getElementById('audiencePoll'));
+      lifelinesUsed["audiencePoll"] = true;
+    } else {
+      alert("You have already used Audience Poll lifeline for this question.");
+    }
+  }
+
+  function flipQuestion() {
+    if (!lifelinesUsed["flipQuestion"]) {
+      currentQuestionIndex++; 
+      displayQuestion();
+      document.getElementById('lifelines').removeChild(document.getElementById('flipQuestion'));
+      lifelinesUsed["flipQuestion"] = true;
+    } else {
+      alert("You have already used Flip the Question lifeline for this question.");
+    }
+  }
+
+  displayQuestion();
+
+</script>
+</body>
+</html>
